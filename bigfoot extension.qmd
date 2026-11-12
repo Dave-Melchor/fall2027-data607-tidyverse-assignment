@@ -1,0 +1,87 @@
+---
+title: "Bigfoot Extension"
+author: Daivd Melchor
+format: html
+---
+
+## Extension: Analyzing Bigfoot Sightings Over Time
+
+To complete this extension, we will write two short code chunks that accomplish:
+
+Extracting time components from the timestamp_dttm column created above
+
+Summarizing and visualizing the distribution of sightings by year using ggplot2.
+
+## Step 1: Extracting the Year
+
+```{r}
+bigfoot <- bigfoot |>
+mutate(sighting_year = year(timestamp_dttm))
+```
+
+This takes the parsed timestamp_dttm created above, and extracts the year into a new column called sighting_year
+
+## Step 2: Summarizing and visualizing
+
+```{r}
+sighting_counts <- bigfoot |> 
+count(sighting_year)
+```
+
+This code creates a new data frame that we will pass through `ggplot()` to help us create a chart so that we can visualize bigfoot's sightings by year. Here is how that code looks like,
+
+```{r}
+ggplot(sighting_counts, aes(x = sighting_year, y = n)) +
+  geom_line(color = "sienna", linewidth = 1) +
+  labs(
+    title = "Bigfoot Sightings by Year",
+    x = "Year",
+    y = "Number of Sightings"
+  )
+```
+
+When inspecting the timeline, a clear data entry anomaly appears in the dataset: a sighting timestamped 2053-06-24 (year 2053). Because future timestamps skew exploratory summaries and stretch the x-axis of time-series plots, we have two primary data hygiene strategies. The first option is to filter out invalid future dates by restricting our analytical window up to the current year (2026). The second option is to preserve the raw dataset intact for transparency while using dplyr to flag and document the erroneous record. Since the purpose of this vignette is to explore tidyverse functions, we will filter out the data up to the most current year and re-plot the summary of sightings by year in a new plot.
+
+```{r}
+sighting_counts_updated <- sighting_counts |>
+filter(sighting_year <= 2026)
+```
+
+## Plotting the Summary
+
+```{r}
+bigfoot_sightings <- ggplot(sighting_counts_updated, aes(x = sighting_year, y = n)) +
+  geom_line(color = "sienna", linewidth = 1) +
+  labs(
+    title = "Bigfoot Sightings by Year",
+    x = "Year",
+    y = "Number of Sightings"
+  )
+
+bigfoot_sightings
+```
+
+## Interpretation of Bigfoot Sightings Over Time
+
+Looking at the line chart, we can see a few clear patterns in the data:
+
+The Early Years: The very first Bigfoot sighting in this dataset was back in 1869. For almost a century after that, reports were super rare and stayed close to zero.
+
+The Big Peak: Sightings started picking up more in the second half of the 20th century, leading to a massive spike in 2004 with a peak of 251 sightings.
+
+Recent Years: After that peak in 2004, the numbers go up and down quite a bit, but generally trend downward. For example, there were 65 sightings in 2020.
+
+## Conclusion
+
+To wrap up this extension of Marcin's Bigfoot sightings vignette, we used a few core Tidyverse tools to clean up the data and explore the timeline:
+
+- lubridate::year() to extract the 4-digit year from the parsed timestamp column.
+
+- dplyr::filter() to catch and filter out the anomalous 2053 date entry error so our chart stayed accurate.
+
+- dplyr::count() to quickly group and tally up the total number of sightings for each year.
+
+- ggplot2 (geom_line()) to build a clean time-series line chart showing how sightings progressed from 1869 through recent years.
+
+Working through this extension showed how important it is to check for data entry errors early on, and how smoothly lubridate, dplyr, and ggplot2 work together for exploratory data analysis.
+
